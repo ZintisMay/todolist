@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <form id="form">
+      <input type="text" name="newTodoItem" />
+      <input type="submit" value="Add New Item" />
+    </form>
+  </body>
+  <script>
+    const form = document.getElementById("form");
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      const data = new FormData(event.target);
+      const dataObj = Object.fromEntries(data.entries());
+      console.log(dataObj);
+      makePostRequest(dataObj);
+    });
+
+    function makePostRequest(jsonData) {
+      const jsonString = JSON.stringify(jsonData);
+      fetch("http://localhost:3333/todo", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: jsonString,
+      })
+        .then(function (response) {
+          return response.json();
+        })
+        .then(function (data) {
+          console.log("response:", data);
+        });
+    }
+  </script>
+</html>
