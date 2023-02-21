@@ -1,33 +1,42 @@
 const express = require("express");
 const server = express();
 const PORT = 3333;
+const TODO_FILE_NAME = "./toDoList.json";
+const { save, load } = require("./jsonUtil");
 
-let list = ["apples"];
+let toDoList = load(TODO_FILE_NAME);
+console.log(toDoList);
 
-let todoList = [];
+function saveToDoList() {
+  save(TODO_FILE_NAME, toDoList);
+}
 
 server.use(express.json());
 
+server.get("/toDo", function (req, res) {
+  res.json(toDoList);
+});
+server.post("/toDo", function (req, res) {
+  const { newTodoItem } = req.body;
+  toDoList.push(newTodoItem);
+  saveToDoList();
+  res.json(toDoList);
+});
+// server.put("/toDo", function (req, res) {
+//   const body = req.body;
+//   console.log(body);
+//   res.json(toDoList);
+// });
+server.delete("/toDo/:deleteThisIndex", function (req, res) {
+  const { deleteThisIndex } = req.params;
+  console.log(deleteThisIndex);
+  toDoList.splice(deleteThisIndex, 1);
+  saveToDoList();
+  res.json(toDoList);
+});
+
 server.get("/", function (req, res) {
   res.sendFile(__dirname + "/index.html");
-});
-
-server.get("/list", function (req, res) {
-  res.json(list);
-});
-
-server.post("/post", function (req, res) {
-  console.log(req.body);
-  res.json(req.body);
-});
-
-server.post("/todo", function (req, res) {
-  const body = req.body;
-  console.log(body);
-  if (body.newTodoItem) {
-    todoList.push(body.newTodoItem);
-  }
-  res.json(todoList);
 });
 
 server.get("*", function (req, res) {

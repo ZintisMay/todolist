@@ -5,39 +5,128 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
+    <style>
+      * {
+        outline: 1px dotted black;
+      }
+      li {
+        display: flex;
+        justify-content: space-between;
+      }
+    </style>
   </head>
   <body>
     <form id="form">
       <input type="text" name="newTodoItem" />
       <input type="submit" value="Add New Item" />
     </form>
+    <ul id="list"></ul>
   </body>
   <script>
+    let toDoList = null;
+
+    const list = document.getElementById("list");
+    // Handle the Form
     const form = document.getElementById("form");
     form.addEventListener("submit", function (event) {
       event.preventDefault();
-      const data = new FormData(event.target);
-      const dataObj = Object.fromEntries(data.entries());
-      console.log(dataObj);
-      makePostRequest(dataObj);
+      const formData = new FormData(event.target);
+      const data = Object.fromEntries(formData.entries());
+      console.log(data);
+      addListItem(data);
     });
 
-    function makePostRequest(jsonData) {
-      const jsonString = JSON.stringify(jsonData);
-      fetch("http://localhost:3333/todo", {
-        method: "POST",
+    getToDoList();
+
+    function getToDoList() {
+      fetch("http://localhost:3333/toDo", {
+        method: "GET",
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
         },
-        body: jsonString,
       })
         .then(function (response) {
           return response.json();
         })
         .then(function (data) {
           console.log("response:", data);
+          toDoList = data;
+          renderToDoList();
         });
     }
+
+    function addListItem(dataObj) {
+      const dataString = JSON.stringify(dataObj);
+      fetch("http://localhost:3333/toDo", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: dataString,
+      })
+        .then(function (response) {
+          return response.json();
+        })
+        .then(function (data) {
+          console.log("response:", data);
+          toDoList = data;
+          renderToDoList();
+        });
+    }
+
+    function deleteItem(index) {
+      fetch(`http://localhost:3333/toDo/${index}`, {
+        method: "DELETE",
+      })
+        .then(function (response) {
+          return response.json();
+        })
+        .then(function (data) {
+          console.log("response:", data);
+          toDoList = data;
+          renderToDoList();
+        });
+    }
+
+    // makePostRequest({ a: 1 });
+
+    // function makePostRequest(jsonData) {
+    //   const jsonString = JSON.stringify(jsonData);
+    //   fetch("http://localhost:3333/todo", {
+    //     method: "POST",
+    //     headers: {
+    //       Accept: "application/json",
+    //       "Content-Type": "application/json",
+    //     },
+    //     body: jsonString,
+    //   })
+    //     .then(function (response) {
+    //       return response.json();
+    //     })
+    //     .then(function (data) {
+    //       console.log("response:", data);
+    //     });
+    // }
+
+    function renderToDoList() {
+      console.log("renderToDoList");
+      let listItemHTML = "";
+      for (let [index, value] of toDoList.entries()) {
+        console.log(index);
+        listItemHTML += `<li>${value}<button class="deleteButton" data-index="${index}">delete</button></li>`;
+      }
+      list.innerHTML = listItemHTML;
+    }
+
+    window.addEventListener("click", function (event) {
+      if (event.target.classList.contains("deleteButton")) {
+        console.log(event.target);
+        const itemIndex = event.target.dataset.index;
+        console.log(itemIndex);
+        deleteItem(itemIndex);
+      }
+    });
   </script>
 </html>
